@@ -9,8 +9,13 @@ struct State {
 enum Shape {
     Circle(mint::Point2<f32>, f32, graphics::Color),
     Rectangle(graphics::Rect, graphics::Color),
-    Line(Vec<mint::Point2<f32>>, f32, graphics::Color),
-    Triangle(Vec<mint::Point2<f32>>, graphics::Color),
+    Line(mint::Point2<f32>, mint::Point2<f32>, f32, graphics::Color),
+    Triangle(
+        mint::Point2<f32>,
+        mint::Point2<f32>,
+        mint::Point2<f32>,
+        graphics::Color,
+    ),
 }
 
 impl ggez::event::EventHandler<GameError> for State {
@@ -33,12 +38,15 @@ impl ggez::event::EventHandler<GameError> for State {
                     0.1,
                     color,
                 )?,
-                &Shape::Line(pointVec, width, color) => {
-                    graphics::Mesh::new_line(ctx, &pointVec, width, color)?
+                &Shape::Line(p1, p2, width, color) => {
+                    graphics::Mesh::new_line(ctx, &[p1, p2], width, color)?
                 }
-                &Shape::Triangle(pointVec, color) => {
-                    graphics::Mesh::new_polygon(ctx, graphics::DrawMode::fill(), &pointVec, color)?
-                }
+                &Shape::Triangle(p1, p2, p3, color) => graphics::Mesh::new_polygon(
+                    ctx,
+                    graphics::DrawMode::fill(),
+                    &[p1, p2, p3],
+                    color,
+                )?,
             };
             // ...and then draw it.
             graphics::draw(ctx, &mesh, graphics::DrawParam::default())?;
@@ -57,7 +65,7 @@ fn main() {
         .unwrap();
 
     let mut shapes = Vec::new();
-    for _ in 0..10 {
+    for _ in 0..5 {
         let mut rng1 = rand::thread_rng();
 
         let mut rng = Rand32::new(rng1.gen_range(0..100)); // Random number chosen by fair die roll
@@ -76,13 +84,18 @@ fn main() {
             },
         ));
         shapes.push(Shape::Triangle(
-            vec![
-                mint::Point2 {
-                    x: rng.rand_float() * 800.0,
-                    y: rng.rand_float() * 600.0,
-                };
-                3
-            ],
+            mint::Point2 {
+                x: rng.rand_float() * 800.0,
+                y: rng.rand_float() * 600.0,
+            },
+            mint::Point2 {
+                x: rng.rand_float() * 800.0,
+                y: rng.rand_float() * 600.0,
+            },
+            mint::Point2 {
+                x: rng.rand_float() * 800.0,
+                y: rng.rand_float() * 600.0,
+            },
             graphics::Color {
                 r: rng1.gen(),
                 g: rng1.gen(),
@@ -91,13 +104,14 @@ fn main() {
             },
         ));
         shapes.push(Shape::Line(
-            vec![
-                mint::Point2 {
-                    x: rng.rand_float() * 800.0,
-                    y: rng.rand_float() * 600.0,
-                };
-                2
-            ],
+            mint::Point2 {
+                x: rng.rand_float() * 800.0,
+                y: rng.rand_float() * 600.0,
+            },
+            mint::Point2 {
+                x: rng.rand_float() * 800.0,
+                y: rng.rand_float() * 600.0,
+            },
             rng.rand_float() * 20.0,
             graphics::Color {
                 r: rng1.gen(),
